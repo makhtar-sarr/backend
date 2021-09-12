@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategorieDepController;
 use App\Http\Controllers\API\CategorieRevController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\DepenseController;
 use App\Http\Controllers\API\RevenuController;
 use App\Http\Controllers\API\SousCategorieDepController;
@@ -34,4 +35,15 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::resource('depenses', DepenseController::class);
     Route::resource('revenus', RevenuController::class);
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::get('dashboard', [DashboardController::class, 'user']);
+    Route::get('get_sous_cat_by_cat/{id}', [SousCategorieDepController::class, 'getSousCatByCat']);
+    Route::get('montant_total', [DepenseController::class, 'montantTotal']);
+    Route::get('chart_day', [DepenseController::class, 'chart']);
+    Route::get('chart_month', [DepenseController::class, 'chartMois']);
+    Route::get('chart_pie', [DepenseController::class, 'chartPie']);
+    Route::get('solde_restant', [DepenseController::class, 'montantReste']);
+    Route::get('montant_total_rev', [RevenuController::class, 'montantTotal']);
+    Route::get('chart_month_rev', [RevenuController::class, 'chartMois']);
+    Route::get('chart_pie_rev', [RevenuController::class, 'chartPie']);
+    Route::get('chart_pie_dash', [DashboardController::class, 'chartPie']);
 });

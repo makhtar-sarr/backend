@@ -15,7 +15,7 @@ class CreateCategorieDepsTable extends Migration
     {
         Schema::create('categorie_deps', function (Blueprint $table) {
             $table->id();
-            $table->string('nom_cat')->unique();
+            $table->string('nom_cat');
             $table->string('description_cat')->nullable();
             $table->integer('user_id');
             $table->foreign('user_id')

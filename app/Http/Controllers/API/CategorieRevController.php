@@ -15,7 +15,10 @@ class CategorieRevController extends BaseController
 
     public function index()
     {
-        $categorieRevs = User::find(Auth::user()->id)->categorieRevsUser;
+        $categorieRevs['myCat'] = User::find(Auth::user()->id)->categorieRevsUser;
+        if (Auth::user()->id != 1) {
+            $categorieRevs['default'] = User::find(1)->categorieRevsUser;
+        }
         return $this->sendResponse(CategorieRevResource::collection($categorieRevs), 'Categorie trouvee.');
     }
 

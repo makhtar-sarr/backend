@@ -69,11 +69,11 @@ class DepenseController extends BaseController
             return $this->sendError($validator->errors());
         }
 
-        $depense->nomDep = $input['nom_dep'];
-        $depense->montantDep = $input['montant_dep'];
-        $depense->idCatDep = $input['categorie_dep_id'];
-        $depense->idSousCat = $input['sous_categorie_dep_id'];
-        $depense->descriptionDep = $input['description_dep'];
+        $depense->nom_dep = $input['nom_dep'];
+        $depense->montant_dep = $input['montant_dep'];
+        $depense->categorie_dep_id = $input['categorie_dep_id'];
+        $depense->sous_categorie_dep_id = $input['sous_categorie_dep_id'];
+        $depense->description_dep = $input['description_dep'];
         $depense->save();
 
         return $this->sendResponse(new DepenseResource($depense), 'Depense modifiee.');
@@ -87,5 +87,101 @@ class DepenseController extends BaseController
 
         $depense->delete();
         return $this->sendResponse([], 'Depense supprimee.');
+    }
+
+    public function montantTotal() {
+        $depenses = User::find(Auth::user()->id)->depensesUser;
+        $montantTotal = 0;
+
+        foreach ($depenses as $depense) {
+            $montantTotal += $depense->montant_dep;
+        }
+
+        return $this->sendResponse($montantTotal, 'Total trouvee.');
+    }
+
+    public function montantReste() {
+        $revenus = User::find(Auth::user()->id)->revenusUser;
+        $montantTotalRev = 0;
+
+        foreach ($revenus as $revenu) {
+            $montantTotalRev += $revenu->montant_rev;
+        }
+
+        $depenses = User::find(Auth::user()->id)->depensesUser;
+        $montantTotalDep = 0;
+
+        foreach ($depenses as $depense) {
+            $montantTotalDep += $depense->montant_dep;
+        }
+
+        $reste = $montantTotalRev - $montantTotalDep;
+
+        return $this->sendResponse($reste, 'Solde restant trouve.');
+    }
+
+    public function chart() {
+        $depenses = User::find(Auth::user()->id)->depensesUser()->orderBy('created_at', 'desc')->get()->groupBy(function($data) {
+            return $data->created_at->format('D');
+        });
+
+        $montants = [];
+        foreach ($depenses as $key => $jour) {
+            $montant = 0;
+            foreach ($jour as $depense) {
+                $montant += $depense->montant_dep;
+            }
+            $montants['data'][] = $montant;
+            $montants['label'][] = $key;
+        }
+
+        return $this->sendResponse($montants, 'Depenses trouvee.');
+    }
+
+    public function chartMois() {
+        $depenses = User::find(Auth::user()->id)->depensesUser()->orderBy('created_at', 'desc')->get()->groupBy(function($data) {
+            return $data->created_at->format('M');
+        });
+
+        $montants = [];
+        foreach ($depenses as $key => $mois) {
+            $montant = 0;
+            foreach ($mois as $depense) {
+                $montant += $depense->montant_dep;
+            }
+            $montants['data'][] = $montant;
+            $montants['label'][] = $key;
+        }
+
+        return $this->sendResponse($montants, 'Depenses trouvee.');
+    }
+
+    public function chartPie() {
+        $depenses = User::find(Auth::user()->id)->depensesUser()->orderBy('categorie_dep_id')->get()->groupBy(function($data) {
+            return $data->categorie_dep_id;
+        });
+
+        $montants = [];
+        $dataPie = [];
+        $montantTotal = 0;
+        foreach ($depenses as $key => $cat) {
+            $montant = 0;
+            foreach ($cat as $depense) {
+                $montant += $depense->montant_dep;
+            }
+            $montants[$key] = $montant;
+            $montantTotal += $montant;
+        }
+        foreach ($montants as $key => $value) {
+            $dataPie['data'][] = round(($value * 360) / $montantTotal);
+            if($key == '1') {
+                $dataPie['label'][] = 'Depenses Fixe';
+            }
+            else {
+                $dataPie['label'][] ='Depenses Spontane';
+            }
+        }
+
+        return $this->sendResponse($dataPie, 'Depenses trouvee.');
     }
 }

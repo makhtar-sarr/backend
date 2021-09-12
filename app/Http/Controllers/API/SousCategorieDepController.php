@@ -7,6 +7,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Validator;
 use App\Models\SousCategorieDep;
 use App\Http\Resources\SousCategorieDep as SousCategorieDepResource;
+use App\Models\CategorieDep;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +16,10 @@ class SousCategorieDepController extends BaseController
 
     public function index()
     {
-        $sousCategorieDeps = User::find(Auth::user()->id)->sousCategorieDepsUser;
+        $sousCategorieDeps['mySousCat'] = User::find(Auth::user()->id)->sousCategorieDepsUser;
+        if (Auth::user()->id != 1) {
+            $sousCategorieDeps['default'] = User::find(1)->sousCategorieDepsUser;
+        }
         return $this->sendResponse(SousCategorieDepResource::collection($sousCategorieDeps), 'Posts fetched.');
     }
 
@@ -53,7 +57,7 @@ class SousCategorieDepController extends BaseController
         $input = $request->all();
 
         $validator = Validator::make($input, [
-            'nom_sous_cat' => 'required|string|unique:sous_categorie_dep,nom_sous_cat',
+            'nom_sous_cat' => 'required|string|unique:sous_categorie_deps,nom_sous_cat',
             'categorie_dep_id' => 'required',
             'desc_sous_cat' => 'string'
         ]);
@@ -67,11 +71,11 @@ class SousCategorieDepController extends BaseController
         }
 
         $sousCategorieDep->nom_sous_cat = $input['nom_sous_cat'];
-        $sousCategorieDep->desc_sous_cat = $input['desc_sous_cat'];
         $sousCategorieDep->categorie_dep_id = $input['categorie_dep_id'];
+        $sousCategorieDep->desc_sous_cat = $input['desc_sous_cat'];
         $sousCategorieDep->save();
 
-        return $this->sendResponse(new SousCategorieDepResource($sousCategorieDep), 'Post updated.');
+        return $this->sendResponse(new SousCategorieDepResource($sousCategorieDep), 'Categorie modifiee.');
     }
 
     public function destroy(SousCategorieDep $sousCategorieDep)
@@ -82,5 +86,10 @@ class SousCategorieDepController extends BaseController
 
         $sousCategorieDep->delete();
         return $this->sendResponse([], 'Post deleted.');
+    }
+
+    public function getSousCatByCat($id) {
+        $sousCategorieDeps = CategorieDep::find($id)->sousCategorieDeps;
+        return $this->sendResponse(SousCategorieDepResource::collection($sousCategorieDeps), 'Posts fetched.');
     }
 }

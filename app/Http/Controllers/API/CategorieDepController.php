@@ -15,7 +15,11 @@ class CategorieDepController extends BaseController
 
     public function index()
     {
-        $categorieDeps = User::find(Auth::user()->id)->categorieDepsUser;
+        $categorieDeps['myCat'] = User::find(Auth::user()->id)->categorieDepsUser;
+        if (Auth::user()->id != 1) {
+            $categorieDeps['default'] = User::find(1)->categorieDepsUser;
+        }
+
         return $this->sendResponse(CategorieDepResource::collection($categorieDeps), 'Categorie trouvee.');
     }
 
@@ -52,7 +56,7 @@ class CategorieDepController extends BaseController
 
         $validator = Validator::make($input, [
             'nom_cat' => 'required|string|min:4|max:150|unique:categorie_deps,nom_cat,except,id',
-            'description_cat' => 'string|min:4|max:255'
+            'description_cat' => 'string|max:255'
         ]);
 
         if(Auth::user()->id != $categorieDep->user_id) {
@@ -79,4 +83,6 @@ class CategorieDepController extends BaseController
         $categorieDep->delete();
         return $this->sendResponse([], 'Categorie supprimee.');
     }
+
+
 }

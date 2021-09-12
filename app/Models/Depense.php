@@ -12,7 +12,6 @@ class Depense extends Model
     protected $fillable = [
         'nom_dep',
         'montant_dep',
-        'restant_solde',
         'categorie_dep_id',
         'sous_categorie_dep_id',
         'description_dep',

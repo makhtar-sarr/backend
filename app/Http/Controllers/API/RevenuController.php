@@ -77,4 +77,62 @@ class RevenuController extends BaseController
         $revenu->delete();
         return $this->sendResponse([], 'Revenu supprimee.');
     }
+
+    public function montantTotal() {
+        $revenus = User::find(Auth::user()->id)->revenusUser;
+        $montantTotal = 0;
+
+        foreach ($revenus as $revenu) {
+            $montantTotal += $revenu->montant_rev;
+        }
+
+        return $this->sendResponse($montantTotal, 'Total trouvee.');
+    }
+
+    public function chartMois() {
+        $revenus = User::find(Auth::user()->id)->revenusUser()->orderBy('created_at', 'desc')->get()->groupBy(function($data) {
+            return $data->created_at->format('M');
+        });
+
+        $montants = [];
+        foreach ($revenus as $key => $mois) {
+            $montant = 0;
+            foreach ($mois as $revenu) {
+                $montant += $revenu->montant_rev;
+            }
+            $montants['data'][] = $montant;
+            $montants['label'][] = $key;
+        }
+
+        return $this->sendResponse($montants, 'Depenses trouvee.');
+    }
+
+    public function chartPie() {
+        $revenus = User::find(Auth::user()->id)->revenusUser()->orderBy('categorie_rev_id')->get()->groupBy(function($data) {
+            return $data->categorie_rev_id;
+        });
+
+        $montants = [];
+        $dataPie = [];
+        $montantTotal = 0;
+        foreach ($revenus as $key => $cat) {
+            $montant = 0;
+            foreach ($cat as $revenu) {
+                $montant += $revenu->montant_rev;
+            }
+            $montants[$key] = $montant;
+            $montantTotal += $montant;
+        }
+        foreach ($montants as $key => $value) {
+            $dataPie['data'][] = round(($value * 360) / $montantTotal);
+            if($key == '1') {
+                $dataPie['label'][] = 'Salaire';
+            }
+            else {
+                $dataPie['label'][] ='Prime';
+            }
+        }
+
+        return $this->sendResponse($dataPie, 'Depenses trouvee.');
+    }
 }
